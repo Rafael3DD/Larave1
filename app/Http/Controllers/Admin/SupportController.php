@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Adapters\ApiAdapter;
 use App\DTO\Supports\CreateSupportDTO;
 use App\DTO\Supports\UpdateSupportDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreUpdateSupport;
-use App\Models\Support;
+use App\Http\Resources\SupportResource;
 use App\Services\SupportService;
 use Illuminate\Http\Request;
-
+use Illuminate\Http\Response;
 
 class SupportController extends Controller
 {
@@ -17,47 +18,47 @@ class SupportController extends Controller
         protected SupportService $service
     ){}
 
-    public function index(Request $request){
-
+    public function index(Request $request)
+    {
+        // $supports = Support::paginate();
         $supports = $this->service->paginate(
             page: $request->get('page', 1),
-            totalPerPage: $request->get('per_page', 1), //Itens por página
+            totalPerPage: $request->get('per_page', 1),
             filter: $request->filter,
-
         );
 
-        $filters = ['filter' => $request->get('filter', '')];
-
-       return view('admin/supports/index', compact('supports', 'filters'));
+        return ApiAdapter::toJson($supports);
+       
     }
 
 
  
 
-    public function create(){
+    // public function create(){
         
-        return view('admin/supports/create');
+    //     return view('admin/supports/create');
+    // }
+
+    public function store(StoreUpdateSupport $request)
+    {
+        $support = $this->service->new(
+            CreateSupportDTO::makeFromRequest($request)
+        );
+
+        return (new SupportResource($support))
+            ->response()
+            ->setStatusCode(Response::HTTP_CREATED);;
     }
 
-    public function store(StoreUpdateSupport $request, Support $support){
-
-        $this->service->new(
-            CreateSupportDTO::MakeFromRequest($request)
-        );   
-
-        return redirect()->route('supports.index');
-    }
-
-    public function show(string $id){
-       
-        if(!$support = $this->service->findOne($id)){ //Se não existir o ID retorna para a pagina anterior
-           
-            return back();
+    public function show(string $id)
+    {
+        if (!$support = $this->service->findOne($id)) {
+            return response()->json([
+                'error' => 'Not Found'
+            ], Response::HTTP_NOT_FOUND);
         }
 
-        return view('admin/supports/show', compact('support'));
-       
-        
+        return new SupportResource($support);
     }
 
     public function edit(string $id){
@@ -68,26 +69,33 @@ class SupportController extends Controller
     }
 
 
-    public function update(StoreUpdateSupport $request, string $id, Support $support ){
-
-
+    public function update(StoreUpdateSupport $request, string $id)
+    {
         $support = $this->service->update(
-            UpdateSupportDTO::MakeFromRequest($request)
-        );   
+            UpdateSupportDTO::makeFromRequest($request, $id)
+        );
 
-        if(!$support){
-            return back();
+        if (!$support) {
+            return response()->json([
+                'error' => 'Not Found'
+            ], Response::HTTP_NOT_FOUND);
         }
 
-        return redirect()->route('supports.index');
-         
+        return new SupportResource($support);
     }
 
 
-    public function destroy(string $id){
-       
-        $this ->service -> delete($id);
-        return redirect()->route('supports.index');
-        
+
+    public function destroy(string $id)
+    {
+        if (!$this->service->findOne($id)) {
+            return response()->json([
+                'error' => 'Not Found'
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        $this->service->delete($id);
+
+        return response()->json([], Response::HTTP_NO_CONTENT);
     }
 }

@@ -1,16 +1,15 @@
-<h1>Nova Dúvida</h1>
+@extends('admin.layouts.app')
 
-@if ($erros->any())
-    @foreach ($errors->all() as $error)
-        {{ $error }}
-    @endforeach
-@endif
+@section('title','Criar Novo Tópico')
 
+@endsection
+
+@section('header')
+<h1 class="text-lg text-black-500">Nova Dúvida</h1>
+@endsection
+
+@section('content')
 <form action="{{ route('supports.store') }}" method="POST">
-     <input type="hidden" value="{{csrf_token()}}" name="_token" id=""> 
-    @csrf()
-    
-    <input type="text" name="subject" placeholder="Assunto" value="{{old('subject')}}">
-    <textarea name="body" cols="30" rows="5" placeholder="descrição">{{old('body')}}</textarea>
-    <button type="submit">Enviar</button>
+    @include('admin.supports.partials.form')
 </form>
+@endsection

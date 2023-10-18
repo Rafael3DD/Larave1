@@ -1,18 +1,18 @@
-<h1>Dúvida {{$support ->id}}</h1>
+@extends('admin.layouts.app')
 
+@section('title', "Editar a Dúvida {$support->subject}")
 
-@if ($errors->any())
-    @foreach ($errors->all() as $error)
-        {{ $error }}
-    @endforeach
-@endif
+@section('header')
+<h1 class="text-lg text-black-500">Dúvida {{ $support->subject }}</h1>
+@endsection
 
+@section('content')
+<x-alert/>
 
-<form action="{{route('supports.update', $support->id)}}" method="POST">
-    @csrf()
-    @method('put')
-    {{-- <input type="text" value="PUT" name="_method"> --}}
-    <input type="text" name="subject" placeholder="Assunto" value="{{$support ->subject}}">
-    <textarea name="body" cols="30" rows="5" placeholder="descrição">{{$support ->body}}</textarea>
-    <button type="submit">Enviar</button>
+<form action="{{ route('supports.update', $support->id) }}" method="POST">
+    @method('PUT')
+    @include('admin.supports.partials.form', [
+        'support' => $support
+    ])
 </form>
+@endsection
