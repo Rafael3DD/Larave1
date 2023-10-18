@@ -12,7 +12,17 @@
 <body>
         <section class="container px-4 mx-auto">
             <head>
-                @yield('header')
+                {{-- @yield('header') --}}
+
+                <div class="sm:flex sm:items-center sm:justify-between">
+                    @yield('header')
+                    
+                </div>
+
+
+
+
+
             </head>
 
             <div class="content">
